@@ -75,11 +75,13 @@ DICT_OPTION_NAME  = {'Exposure'         : Exposure,
                      'Shortcut_Button_3': Shortcut_Button_3}
 ##################################################################################################################
 #TouchButton() Class variable
+CONFIRM_MODE_LIST       = ['video','single','depth','panorama','burst','perfectshot']
 CPTUREBUTTON_RESOURCEID ='com.intel.camera22:id/btn_mode'
-FRONTBACKBUTTON_DESCR = 'com.intel.camera22:id/shortcut_mode_2'
-CPTUREPOINT='adb shell input swipe 2200 1095 2200 895 '
-DRAWUP_CAPTUREBUTTON='adb shell input swipe 2200 1095 2200 895 '
-CAMERA_ID = 'adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep pref_camera_id_key'
+FRONTBACKBUTTON_DESCR   = 'com.intel.camera22:id/shortcut_mode_2'
+CPTUREPOINT             ='adb shell input swipe 2200 1095 2200 895 '
+DRAWUP_CAPTUREBUTTON    ='adb shell input swipe 2200 1095 2200 895 '
+CAMERA_ID               = 'adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep pref_camera_id_key'
+
 ##################################################################################################################
 
 class Adb():
@@ -373,24 +375,17 @@ class TouchButton():
     
     def _confirmSettingMode(self,sub_mode,option):
         if sub_mode == 'location':
-            result = a.cmd('cat','/data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep '+ sub_mode)
+            result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep '+ sub_mode)
             if result.find(option) == -1:
                 self.fail('set camera setting ' + sub_mode + ' to ' + option + ' failed')
         else:
-            result = a.cmd('cat','/data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep ' + sub_mode)
+            result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep ' + sub_mode)
             if result.find(option) == -1:
                 self.fail('set camera setting ' + sub_mode + ' to ' + option + ' failed')            
     
     def _confirmCameraMode(self,mode):
-        if mode =='smile':
-            self._ClearData()
-            d(resourceId = CPTUREBUTTON_RESOURCEID).click.wait()
-            time.sleep(2)
-            d(resourceId = CPTUREBUTTON_RESOURCEID).click.wait()
-            result = a.cmd('adb shell ls /mnt/sdcard/DCIM/100ANDRO/*  | grep IMG | wc -l')
-            if result.find(1) != 1:
-                self.fail('set camera smile mode fail')
-        else:
-            result = a.cmd('cat','/data/data/com.intel.camera22/shared_prefs/mode_selected.xml| grep \'value="%s"\''%mode)
-            if result.find(mode) == -1:
-                self.fail('set camera '+mode +' mode fail')               
+        mode_index = CONFIRM_MODE_LIST.index(mode) -1
+        mode_new   = str(mode_index)
+        result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/mode_selected.xml| grep \'value="%s"\''%mode_new)
+        if result.find(mode_new) == -1:
+            self.fail('set camera '+mode +' mode fail')               
