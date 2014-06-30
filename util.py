@@ -280,7 +280,7 @@ class SetOption():
         x_1 = self._getSettingBounds()[0] - self._getOptionWidthAndHeight()[0]
         x_2 = self._getSettingBounds()[0]
         y   = self._getOptionOrdinate(optiontext)
-        x_i = self._getOptionWidthAndHeight()[0] * diffindex
+        x_i = self._getOptionWidthAndHeight()[0] * (diffindex - 1)
         d.swipe(x_1, y, x_2 + x_i, y)
 
     def _slideOptionRightToLeft(self,optiontext,diffindex):
@@ -288,7 +288,7 @@ class SetOption():
         x_1 = self._getSettingBounds()[0] - self._getOptionWidthAndHeight()[0]
         x_2 = self._getSettingBounds()[0] - self._getOptionWidthAndHeight()[0] - self._getOptionWidthAndHeight()[0]
         y   = self._getOptionOrdinate(optiontext)
-        x_i = self._getOptionWidthAndHeight()[0] * diffindex
+        x_i = self._getOptionWidthAndHeight()[0] * (diffindex - 1)
         d.swipe(x_1, y, x_2 - x_i, y)
 
     def setCameraOption(self,optiontext,option):
