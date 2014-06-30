@@ -423,7 +423,7 @@ class TouchButton():
             raise Exception('set camera '+mode +' mode fail')
 
 
-    def captureAndCheckPicCount(self,capturemode,delaytime):
+    def captureAndCheckPicCount(self,capturemode,delaytime=0):
         d = { 'single':'jpg', 'video':'mp4', 'smile':'jpg', 'longclick':'jpg'} 
         beforeNo = commands.getoutput('adb shell ls /sdcard/DCIM/100ANDRO/* | grep '+ d[capturemode] +' | wc -l') #Get count before capturing
         if capturemode == 'video':
