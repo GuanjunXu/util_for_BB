@@ -303,7 +303,7 @@ class SetOption():
         while d(text = optiontext).wait.gone(timeout = 2000):
             self._slideSettingListUp()
         newoptiontext = optiontext.replace(' ', '_')
-        cated_0_0 = string.atoi(commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | wc -l'))
+        cated_0_0 = int(commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | wc -l'))
         #If it is the first time launching camera, there are only 4 lines in _0_0.xml. Need more logic.
         if cated_0_0 > 4:
             #Get the current option
@@ -433,7 +433,7 @@ class TouchButton():
         time.sleep(delaytime) #Sleep a few seconds for file saving
         afterNo = commands.getoutput('adb shell ls /sdcard/DCIM/100ANDRO/* | grep '+ d[capturemode] +' | wc -l') #Get count after taking picture
         result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/mode_selected.xml| grep \'value="3"\'')
-        if result.find('value="3"') == 1:
+        if result.find('value="3"') != -1:
             if string.atoi(beforeNo) != string.atoi(afterNo) - 10:
                raise Exception('Taking picture/video failed!')
         else:
