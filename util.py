@@ -76,10 +76,10 @@ DICT_OPTION_NAME  = {'Exposure'         : Exposure,
 ##################################################################################################################
 #TouchButton() Class variable
 CONFIRM_MODE_LIST       = ['video','single','depth','panorama','burst','perfectshot']
-CPTUREBUTTON_RESOURCEID ='com.intel.camera22:id/btn_mode'
+CPTUREBUTTON_RESOURCEID = 'com.intel.camera22:id/btn_mode'
 FRONTBACKBUTTON_DESCR   = 'com.intel.camera22:id/shortcut_mode_2'
-CPTUREPOINT             ='adb shell input swipe 2200 1095 2200 895 '
-DRAWUP_CAPTUREBUTTON    ='adb shell input swipe 2200 1095 2200 895 '
+CPTUREPOINT             = 'adb shell input swipe 2200 1095 2200 895 '
+DRAWUP_CAPTUREBUTTON    = 'adb shell input swipe 2200 1095 2200 895 '
 CAMERA_ID               = 'adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep pref_camera_id_key'
 
 ##################################################################################################################
@@ -214,7 +214,8 @@ class SetCaptureMode():
 
     def switchCaptureMode(self,mode):
         '''
-        This method is used to switch social camera 2.3 capture mode.
+        Usage: This method is used to switch social camera 2.3 capture mode.
+        e.g. SetCaptureMode.switchCaptureMode('single')
         '''
         d(description = 'Show switch camera mode list').click.wait()
         if mode == 'smile' or mode == 'hdr':
@@ -308,8 +309,8 @@ class SetOption():
                     d(resourceId = 'com.intel.camera22:id/camera_settings').click.wait()
             else:
                 #Neither higher nor lower than the target option, that means the current option is just the target one.
-                pass
-            d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
+                d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
+            
         else:
             if currentindex != targetindex:
                 d.click(self._getFirstItem() + self._getOptionWidthAndHeight()[1] * targetindex, self._getOptionOrdinate(optiontext))
@@ -321,8 +322,10 @@ class TouchButton():
     def takePicture(self,status):
         # capture single image
         def _singlecapture():
+            
             d(resourceId = CPTUREBUTTON_RESOURCEID).click.wait()
             time.sleep(2)
+
         # capture smile image
         def _smilecapture():
             d(resourceId = CPTUREBUTTON_RESOURCEID).click.wait()
@@ -388,4 +391,12 @@ class TouchButton():
         mode_new   = str(mode_index)
         result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/mode_selected.xml| grep \'value="%s"\''%mode_new)
         if result.find(mode_new) == -1:
-            self.fail('set camera '+mode +' mode fail')               
+            self.fail('set camera '+mode +' mode fail')
+
+    def captureAndCheckPicCount(self,capturemode,format,delaytime=0):
+        beforeNo = commands.getoutput('adb shell ls /sdcard/DCIM/100ANDRO/* | grep '+ format +' | wc -l') #Get count before capturing
+        self.takePicture(capturemode)
+        time.sleep(delaytime) #Sleep a few seconds for file saving
+        afterNo = commands.getoutput('adb shell ls /sdcard/DCIM/100ANDRO/* | grep '+ format +' | wc -l') #Get count after taking picture
+        if beforeNo == afterNo: #If the count does not raise up after capturing, case failed
+            self.fail('Taking picture/video failed!')
