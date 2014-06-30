@@ -27,7 +27,7 @@ POP_MODE  = {'smile':"Smile\nOFF",
 ##################################################################################################################
 #SetOption() Class variable
 Exposure          = ['-6','-3','0','3','6'] #_0_0
-ISO               = ['auto','100','200','400','800'] #_0_0
+ISO               = ['iso-auto','iso-100','iso-200','iso-400','iso-800'] #_0_0
 White_Balance     = ['auto','incandescent','fluorescent','cloudy-daylight','daylight'] #_0_0
 Switch_Camera     = ['1','0'] #_0
 Face_Detection    = ['off','on'] #_0
@@ -73,6 +73,22 @@ DICT_OPTION_NAME  = {'Exposure'         : Exposure,
                      'Shortcut_Button_1': Shortcut_Button_1,
                      'Shortcut_Button_2': Shortcut_Button_2,
                      'Shortcut_Button_3': Shortcut_Button_3}
+                     
+DEFAULT_OPTION    = {'Exposure'         : Exposure[2],
+                     'ISO'              : ISO[0],
+                     'White_Balance'    : White_Balance[0],
+                     'Switch_Camera'    : Switch_Camera[1],
+                     'Face_Detection'   : Face_Detection[1],
+                     'Scenes'           : Scenes[0],
+                     'Self_Timer'       : Self_Timer[0],
+                     'Geo_Location'     : Geo_Location[1],
+                     'Picture_Size'     : Picture_Size[0],
+                     'Hints'            : Hints[0],
+                     'Settings_Layout'  : Settings_Layout[0],
+                     'Shortcut_Button_1': Shortcut_Button_1[3],
+                     'Shortcut_Button_2': Shortcut_Button_2[4],
+                     'Shortcut_Button_3': Shortcut_Button_3[5]}
+                     
 ##################################################################################################################
 #TouchButton() Class variable
 CONFIRM_MODE_LIST       = ['video','single','depth','panorama','burst','perfectshot']
@@ -254,25 +270,25 @@ class SetOption():
         return xfirstitem
 
     def _slideSettingListUp(self):
-        x   = (self._getSettingBounds())[3]
-        y_1 = (self._getSettingBounds())[2] - (self._getOptionWidthAndHeight())[1]
-        y_2 = (self._getSettingBounds())[1] - (self._getOptionWidthAndHeight())[1]
+        x   = self._getSettingBounds()[3]
+        y_1 = self._getSettingBounds()[2] - self._getOptionWidthAndHeight()[1]
+        y_2 = self._getSettingBounds()[1] - self._getOptionWidthAndHeight()[1]
         d.swipe(x, y_1, x, y_2)
 
     def _slideOptionLeftToRight(self,optiontext,diffindex):
         # --->>>
-        x_1 = (self._getSettingBounds())[0] - (self._getOptionWidthAndHeight())[0]
-        x_2 = (self._getSettingBounds())[0]
+        x_1 = self._getSettingBounds()[0] - self._getOptionWidthAndHeight()[0]
+        x_2 = self._getSettingBounds()[0]
         y   = self._getOptionOrdinate(optiontext)
-        x_i = (self._getOptionWidthAndHeight())[0] * diffindex
+        x_i = self._getOptionWidthAndHeight()[0] * diffindex
         d.swipe(x_1, y, x_2 + x_i, y)
 
     def _slideOptionRightToLeft(self,optiontext,diffindex):
         # <<<---
-        x_1 = (self._getSettingBounds())[0] - (self._getOptionWidthAndHeight())[0]
-        x_2 = (self._getSettingBounds())[0] - (self._getOptionWidthAndHeight())[0] - (self._getOptionWidthAndHeight())[0]
+        x_1 = self._getSettingBounds()[0] - self._getOptionWidthAndHeight()[0]
+        x_2 = self._getSettingBounds()[0] - self._getOptionWidthAndHeight()[0] - self._getOptionWidthAndHeight()[0]
         y   = self._getOptionOrdinate(optiontext)
-        x_i = (self._getOptionWidthAndHeight())[0] * diffindex
+        x_i = self._getOptionWidthAndHeight()[0] * diffindex
         d.swipe(x_1, y, x_2 - x_i, y)
 
     def setCameraOption(self,optiontext,option):
@@ -287,26 +303,41 @@ class SetOption():
         while d(text = optiontext).wait.gone(timeout = 2000):
             self._slideSettingListUp()
         newoptiontext = optiontext.replace(' ', '_')
-        #Get the current option
-        if newoptiontext not in SETTINGS_0:
-            stringcated = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
-            currentoption = (((stringcated.split('>'))[1]).split('<'))[0]
-        else:
-            stringcated = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
-            currentoption = (((stringcated.split('>'))[1]).split('<'))[0]
-        #Get the current option's index and compare it with the target option
-        currentindex = DICT_OPTION_NAME[newoptiontext].index(currentoption)
-        targetindex  = DICT_OPTION_NAME[newoptiontext].index(option)
-        diffindex = abs(currentindex - targetindex)
-        #Settinglayout do change UI very much, so need one more logic
-        settinglayout = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep pref_settings_layout_key')
-        if settinglayout.find('Large')!= -1:
-            if currentindex != targetindex:
-                d.click(self._getFirstItem() + self._getOptionWidthAndHeight()[1] * targetindex, self._getOptionOrdinate(optiontext))
+        cated_0_0 = string.atoi(commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | wc -l'))
+        #If it is the first time launching camera, there are only 4 lines in _0_0.xml. Need more logic.
+        if cated_0_0 > 4:
+            #Get the current option
+            if newoptiontext not in SETTINGS_0:
+                stringcated = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
+                currentoption = (((stringcated.split('>'))[1]).split('<'))[0]
             else:
-                d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
+                stringcated = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
+                currentoption = (((stringcated.split('>'))[1]).split('<'))[0]
+            #Get the current option's index and compare it with the target option
+            currentindex = DICT_OPTION_NAME[newoptiontext].index(currentoption)
+            targetindex  = DICT_OPTION_NAME[newoptiontext].index(option)
+            diffindex = abs(currentindex - targetindex)
+            #Settinglayout do change UI very much, so need one more logic
+            settinglayout = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep pref_settings_layout_key')
+            if settinglayout.find('Large')!= -1:
+                if currentindex != targetindex:
+                    d.click(self._getFirstItem() + self._getOptionWidthAndHeight()[1] * targetindex, self._getOptionOrdinate(optiontext))
+                else:
+                    d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
+            else:
+                #If current option is just the target option, do nothing('pass').
+                if currentindex > targetindex:
+                    self._slideOptionLeftToRight(optiontext, diffindex)
+                elif currentindex < targetindex:
+                    self._slideOptionRightToLeft(optiontext, diffindex)
+                else:
+                    #Neither higher nor lower than the target option, that means the current option is just the target one.
+                    d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
         else:
-            #If current option is just the target option, do nothing('pass').
+            currentoption = DEFAULT_OPTION[newoptiontext]
+            currentindex = DICT_OPTION_NAME[newoptiontext].index(currentoption)
+            targetindex  = DICT_OPTION_NAME[newoptiontext].index(option)
+            diffindex = abs(currentindex - targetindex)
             if currentindex > targetindex:
                 self._slideOptionLeftToRight(optiontext, diffindex)
             elif currentindex < targetindex:
