@@ -259,19 +259,21 @@ class SetOption():
         y_2 = (self._getSettingBounds())[1] - (self._getOptionWidthAndHeight())[1]
         d.swipe(x, y_1, x, y_2)
 
-    def _slideOptionLeftToRight(self,optiontext):
+    def _slideOptionLeftToRight(self,optiontext,diffindex):
         # --->>>
         x_1 = (self._getSettingBounds())[0] - (self._getOptionWidthAndHeight())[0]
         x_2 = (self._getSettingBounds())[0]
         y   = self._getOptionOrdinate(optiontext)
-        d.swipe(x_1, y, x_2, y)
+        x_i = (self._getOptionWidthAndHeight())[0] * diffindex
+        d.swipe(x_1, y, x_2 + x_i, y)
 
-    def _slideOptionRightToLeft(self,optiontext):
+    def _slideOptionRightToLeft(self,optiontext,diffindex):
         # <<<---
         x_1 = (self._getSettingBounds())[0] - (self._getOptionWidthAndHeight())[0]
         x_2 = (self._getSettingBounds())[0] - (self._getOptionWidthAndHeight())[0] - (self._getOptionWidthAndHeight())[0]
         y   = self._getOptionOrdinate(optiontext)
-        d.swipe(x_1, y, x_2, y)
+        x_i = (self._getOptionWidthAndHeight())[0] * diffindex
+        d.swipe(x_1, y, x_2 - x_i, y)
 
     def setCameraOption(self,optiontext,option):
         '''
@@ -292,30 +294,26 @@ class SetOption():
         else:
             stringcated = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
             currentoption = (((stringcated.split('>'))[1]).split('<'))[0]
+        #Get the current option's index and compare it with the target option
         currentindex = DICT_OPTION_NAME[newoptiontext].index(currentoption)
         targetindex  = DICT_OPTION_NAME[newoptiontext].index(option)
+        diffindex = abs(currentindex - targetindex)
         #Settinglayout do change UI very much, so need one more logic
         settinglayout = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep pref_settings_layout_key')
-        if settinglayout.find('Mini')!= -1:
-            #Get the current option's index and compare it with the target option
-            #If current option is just the target option, do nothing('pass').
-            if currentindex > targetindex:
-                for i in range(currentindex - targetindex):
-                    self._slideOptionLeftToRight(optiontext)
-                    d(resourceId = 'com.intel.camera22:id/camera_settings').click.wait()
-            elif currentindex < targetindex:
-                for i in range(targetindex - currentindex):
-                    self._slideOptionRightToLeft(optiontext)
-                    d(resourceId = 'com.intel.camera22:id/camera_settings').click.wait()
-            else:
-                #Neither higher nor lower than the target option, that means the current option is just the target one.
-                d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
-            
-        else:
+        if settinglayout.find('Large')!= -1:
             if currentindex != targetindex:
                 d.click(self._getFirstItem() + self._getOptionWidthAndHeight()[1] * targetindex, self._getOptionOrdinate(optiontext))
             else:
-                pass
+                d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
+        else:
+            #If current option is just the target option, do nothing('pass').
+            if currentindex > targetindex:
+                self._slideOptionLeftToRight(optiontext, diffindex)
+            elif currentindex < targetindex:
+                self._slideOptionRightToLeft(optiontext, diffindex)
+            else:
+                #Neither higher nor lower than the target option, that means the current option is just the target one.
+                d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
 
 class TouchButton():
 
