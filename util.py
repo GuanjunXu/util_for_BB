@@ -406,14 +406,18 @@ class TouchButton():
             print('Current camera is ' + status)
     
     def confirmSettingMode(self,sub_mode,option):
-        if sub_mode == 'Geo Location':
-            result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep '+ sub_mode)
-            if result.find(option) == -1:
-                raise Exception('set camera setting ' + sub_mode + ' to ' + option + ' failed')
-        else:
-            result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep ' + sub_mode)
-            if result.find(option) == -1:
-                raise Exception('set camera setting ' + sub_mode + ' to ' + option + ' failed')            
+        mode = sub_mode.replace(' ', '_')
+        if option == DEFAULT_OPTION[mode]:
+            print ('current is '+ sub_mode + option +' mode' )
+        else:            
+            if mode not in SETTINGS_0:
+                result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep ' + DICT_OPTION_KEY[mode])
+                if result.find(option) == -1:
+                    raise Exception('set camera setting ' + mode + ' to ' + option + ' failed') 
+            else:
+                result = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep '+ DICT_OPTION_KEY[mode])
+                if result.find(option) == -1:
+                    raise Exception('set camera setting ' + mode + ' to ' + option + ' failed')             
     
     def confirmCameraMode(self,mode):
         mode_index = CONFIRM_MODE_LIST.index(mode) -1
