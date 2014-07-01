@@ -300,8 +300,10 @@ class SetOption():
                 You may need use the arguements that have been defined at the top of this file
         '''
         d(resourceId = 'com.intel.camera22:id/camera_settings').click.wait()
-        while d(text = optiontext).wait.gone(timeout = 2000):
+        trytimes = 1
+        while d(text = optiontext).wait.gone(timeout = 2000) and trytimes < 5:
             self._slideSettingListUp()
+            trytimes = trytimes + 1
         newoptiontext = optiontext.replace(' ', '_')
         cated_0_0 = int(commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | wc -l'))
         #If it is the first time launching camera, there are only 4 lines in _0_0.xml. Need more logic.
@@ -345,6 +347,20 @@ class SetOption():
             else:
                 #Neither higher nor lower than the target option, that means the current option is just the target one.
                 d(resourceId = 'com.intel.camera22:id/mini_layout_view').click.wait()
+        oldoption    = DICT_OPTION_NAME[newoptiontext].index(DEFAULT_OPTION[newoptiontext])
+        targetoption = DICT_OPTION_NAME[newoptiontext].index(option)
+        if oldoption != targetoption:
+            if newoptiontext not in SETTINGS_0:
+                resultoption = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
+                if resultoption.find(option) == -1:
+                    raise Exception('Set camera setting <' + optiontext + '> to <' + option + '> failed')
+            else:
+                resultoption = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
+                if resultoption.find(option) == -1:
+                    raise Exception('Set camera setting <' + optiontext + '> to <' + option + '> failed')
+        else:
+            #If the current option is the default one, there is no need for confirmation
+            pass
 
 class TouchButton():
 
