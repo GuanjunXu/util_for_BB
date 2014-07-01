@@ -306,8 +306,9 @@ class SetOption():
             trytimes = trytimes + 1
         newoptiontext = optiontext.replace(' ', '_')
         cated_0_0 = int(commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | wc -l'))
+        cated_0 = int(commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0.xml | wc -l'))
         #If it is the first time launching camera, there are only 4 lines in _0_0.xml. Need more logic.
-        if cated_0_0 > 4:
+        if cated_0_0 > 4 or cated_0 > 9:
             #Get the current option
             if newoptiontext not in SETTINGS_0:
                 stringcated = commands.getoutput('adb shell cat /data/data/com.intel.camera22/shared_prefs/com.intel.camera22_preferences_0_0.xml | grep %s' %DICT_OPTION_KEY[newoptiontext])
